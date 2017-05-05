@@ -1,6 +1,6 @@
 # custom-syntax-highlighter
 
-### Define your own syntax for highlighting code blocks.
+### Define your own syntax for highlighting code blocks!
 
 So you don't like other syntax highlighters on the market, eh?
 
@@ -16,7 +16,7 @@ Meet **custom-syntax-highlighter** – the tiny, unassuming library that will fi
 
 ## How it works:
 
-Sorry to have to tell you this, but if you're going to parse your own syntax, you're going to need a basic understanding of regular expressions. If you don't have that, you're gonna hate this. If you do, it'll be cake.
+Prepare yourself – you're going to need a basic understanding of regular expressions in order to parse a syntax. If you don't have that, you're gonna hate this. If you do, it'll be cake.
 
 So the first thing you do is install it:
 
@@ -120,7 +120,7 @@ highlight({
 
 #### Using a function for the `patterns` options
 
-If you use a function for the "patterns" options, that function will be called once for each identified block and should return either nothing if you don't want to process it, or an object of patterns with which to do the processing. For example:
+If you use a function for the "patterns" option, that function will be called once for each identified block and should return either nothing if you don't want to process it, or an object of patterns with which to do the processing. For example:
 
 ```javascript
 highlight({

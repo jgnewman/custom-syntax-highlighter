@@ -1,6 +1,6 @@
 {
   "name": "custom-syntax-highlighter",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Define your own syntax for highlighting code blocks",
   "main": "bin/index.js",
   "repository": {
@@ -8,6 +8,15 @@
     "type": "git"
   },
   "author": "John Newman <rescuecreative@gmail.com>",
+  "keywords": [
+    "custom",
+    "syntax",
+    "highlighter",
+    "highlighting",
+    "highlight",
+    "dsl",
+    "parser"
+  ],
   "license": "MIT",
   "devDependencies": {
     "babel": "^6.23.0",
