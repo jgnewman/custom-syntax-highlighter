@@ -1,0 +1,166 @@
+
+/**
+ * Recursively parses a string of text in a way that loosely mimicks a Jison parser.
+ * It looks at the beginning of the string, and attempts to find a match. If there
+ * is no match, it collects a raw character and recurses. If it finds a match, it
+ * collects the match, wraps it in a span with a class name, and recurses. It
+ * goes until the whole string has been collected.
+ *
+ * @param  {Object} patterns  The patterns to parse against
+ * @param  {String} incoming  The original text, being shortened as we recurse.
+ * @param  {String} output    The new text with spans.
+ *
+ * @return {String} The output.
+ */
+function parse(patterns, incoming, output) {
+
+  /*
+   * These variables will be used to help us figure out how to
+   * wrap text when we find a match.
+   */
+  let match = null;
+  let matchType = null;
+  let matchPrefix = null;
+  let matchSuffix = null;
+  output = output || '';
+
+  /*
+   * Return the output when the incoming string has nothing left in it.
+   */
+  if (!incoming.length) return output || '';
+
+  /*
+   * Check each pattern against the string. If we find a match, assign it to the
+   * match variable.
+   */
+  Object.keys(patterns).some(key => {
+    const isRegex = patterns[key] instanceof RegExp;
+    const pattern = isRegex ? patterns[key] : patterns[key][0];
+    const prefix  = isRegex ? null : (patterns[key][1] || null);
+    const suffix  = isRegex ? null : (patterns[key][2] || null);
+
+    match       = incoming.match(pattern);
+    matchType   = match ? key : null;
+    matchPrefix = prefix;
+    matchSuffix = suffix;
+    return !!match;
+  })
+
+  /*
+   * If there was no match, collect one character and recurse.
+   */
+  if (!match) {
+    return parse(patterns, incoming.slice(1), output + incoming[0])
+
+  /*
+   * If there was a match, wrap it in a span. If we have a prefix and/or
+   * suffix, drop those in too.
+   */
+  } else {
+    let replacement = '<span class="' + matchType + '">' + match[1] + '</span>';
+    if (matchPrefix) replacement = matchPrefix + replacement;
+    if (matchSuffix) replacement = replacement + matchSuffix;
+
+    /*
+     * Collect the match and recurse
+     */
+    return parse(patterns, incoming.slice(match[0].length), output + replacement)
+  }
+}
+
+/**
+ * Custom-syntax-highlighter is nice and knows that you like to indent code
+ * when you're writing. It doesn't expect you to dedent your `pre` and `code`
+ * tags all the way to the left just so it won't appear weirdly indented in the
+ * output.
+ *
+ * This function does some convenient whitespace parsing to help with things like that.
+ *
+ * @param  {String} text  The original, unparsed text.
+ *
+ * @return {String} The cleaned up text.
+ */
+function clean(text) {
+
+  /*
+   * Cut out useless new line lines at the front and back.
+   * Check to see if there's some indentation and return if not.
+   */
+  const trimmed = text.replace(/^\n+|\n+\s+$/g, '');
+  const spaceToCut = trimmed.match(/^\s+/);
+  if (!spaceToCut) return trimmed;
+
+  /*
+   * Split the block into an array of lines. For each one, remove the
+   * matched indentation from the front.
+   */
+  const textArray = trimmed.split('\n');
+  const dedented = textArray.map((string, index) => {
+    return (!string || /^\s+$/.test(string)) ? string : string.replace(spaceToCut[0], '');
+  }).join('\n');
+
+  /*
+   * Spit out the dedented text.
+   */
+  return '\n' + dedented;
+}
+
+/**
+ * Highlights code blocks in a way you specify.
+ *
+ * @param  {Object} config    Allows the following keys:
+ *                              patterns:    {...} (The regex patterns used to parse)
+ *                              linenums:    true  (Turns on line numbers)
+ *                              selector:    'pre' (Defaults to 'pre code')
+ *                              preProcess:  fn    (Allows you to eff with the string after parsing)
+ *                              postProcess: fn    (Allows you to eff with the string after parsing)
+ *
+ * @return {undefined}
+ */
+function highlight(config) {
+  const selector    = config.selector    || 'pre code';
+  const postProcess = config.postProcess || (str => str);
+  const preProcess  = config.preProcess  || (str => str);
+
+  /*
+   * Find all `pre code` blocks and loop over them. For each block...
+   */
+  Array.prototype.slice.call(document.querySelectorAll(selector)).forEach(block => {
+    const patterns = (typeof config.patterns === 'function' ? config.patterns(block) : config.patterns) || {};
+
+    /*
+     * Get the inner text, clean the text, then parse the text with the patterns.
+     */
+    const innerText = block.innerText;
+    const cleanText = clean(innerText);
+    let   parsed = postProcess(parse(patterns, preProcess(cleanText)));
+
+    /*
+     * If the user wants line numbers, split the parsed text on new lines
+     * and loop over each line.
+     */
+    if (config.linenums) {
+      parsed = parsed.split('\n').map((string, index) => {
+
+        /*
+         * Create a line number like 00, 01, 02, etc...
+         */
+        if (!index) return string;
+        let ind = (index - 1) + '';
+        if (ind.length < 2) ind = '0' + ind;
+
+        /*
+         * Return a new span on the beginning og the line.
+         */
+        return '<span class="linenum">' + ind + '</span> ' + string;
+      }).join('\n');
+    }
+    block.innerHTML = parsed;
+  })
+
+}
+
+/*
+ * Export the hightlight function
+ */
+module.exports = exports = highlight;

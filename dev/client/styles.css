@@ -1,0 +1,66 @@
+h1 {
+  font-family: 'Fira Code', menlo, monospace;
+}
+
+pre code {
+  color: #342C32;
+  font-family: 'Fira Code', menlo, monospace;
+  line-height: 1.8;
+  font-size: 16px;
+}
+
+.comma {
+  color: #342C32;
+}
+
+.linenum {
+  color: #B3ABB1;
+  padding-right: 15px;
+}
+
+.linecomment,
+.blockcomment {
+  color: #B3ABB1;
+  font-style: italic;
+}
+
+.comment .comma {
+  color: #B3ABB1;
+}
+
+.singlequote,
+.doublequote,
+.backquote {
+  color: #488B57;
+}
+
+.modulename,
+.modulerename {
+  color: #B60E52;
+}
+
+.symbol {
+  color: #B60E52;
+}
+
+.keyword {
+  color: #B60E52;
+}
+
+.boolean {
+  color: #DB983C;
+}
+
+.number {
+  color: #541274;
+}
+
+.objectkey,
+.htmlopen,
+.htmlclose {
+  color: #426E8D;
+}
+
+.destructure {
+  color: #B60E52;
+}

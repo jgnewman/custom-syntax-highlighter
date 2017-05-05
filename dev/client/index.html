@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Custom Syntax Highlighter Test Page</title>
+    <link rel="stylesheet" type="text/css" href="/styles.css" />
+  </head>
+  <body>
+    <h1>It's alive!</h1>
+    <pre>
+      <code class="javascript">
+        // JSX will work as long as we import anything at all
+        // from streampunk. No need to explicitly import React.
+        import { component } from 'streampunk';
+        import { App } from './components/App';
+
+        // Import some redux action functions as well as some
+        // random utility functions.
+        import * as appActions from './actions/appActions';
+        import * as utils from './lib/utils';
+
+        // Provide an “infuser” and an “ensurer” to the container.
+        const AppContainer = component(({ infuse, ensure }) => {
+
+          // Infuse props into the container.
+          // Actions are automatically run through `bindActionCreators`
+          // Modules are simply be passed through as props.
+          // Values are selected from the redux state when it changes.
+          infuse({
+            actions: {
+              appActions: appActions
+            },
+            modules: {
+              utils: utils
+            },
+            values: state => ({
+              foo: state.app.foo,
+              bar: state.app.bar
+            })
+          })
+
+          // Ensure our props look right.
+          // This is essentially a wrapper for prop-types
+          ensure({
+            foo: ensure.bool.isRequired,
+            bar: ensure.bool.isRequired,
+            appActions: ensure.object.isRequired,
+            utils: ensure.object.isRequired
+          })
+
+          // Return a function that takes props and do whatever
+          // you want with them.
+          return ({ foo, bar, appActions, utils }) => (
+            <\App
+              foo={foo}
+              bar={bar}
+              appActions={appActions}
+              utils={utils}
+            />
+          )
+
+        })
+
+        // And don’t forget to export!
+        export default AppContainer;
+      </code>
+    </pre>
+    <script src="/app.js"></script>
+  </body>
+</html>
