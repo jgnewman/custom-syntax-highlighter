@@ -1,6 +1,6 @@
 {
   "name": "custom-syntax-highlighter",
-  "version": "0.0.2",
+  "version": "1.0.0",
   "description": "Define your own syntax for highlighting code blocks",
   "main": "bin/index.js",
   "repository": {

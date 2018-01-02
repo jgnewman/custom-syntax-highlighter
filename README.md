@@ -1,5 +1,7 @@
 # custom-syntax-highlighter
 
+> Warning! Version 1.0.0+ is **not** backward compatible with versions 0.0.*
+
 ### Define your own syntax for highlighting code blocks!
 
 So you don't like other syntax highlighters on the market, eh?
@@ -52,10 +54,16 @@ You might attack it with something like this:
 
 ```javascript
 highlight({
-  patterns: {
-    'string'  : /^(\'[^\'\n]*\')/,
-    'fn-call' : [/^([A-z_]+)\(/, '', '(']
-  }
+  patterns: [
+    {
+      name: 'string',
+      match: /^(\'[^\'\n]*\')/
+    },
+    {
+      name: 'fn-call',
+      match: [/^([A-z_]+)\(/, '', '(']
+    }
+  ]
 })
 ```
 
@@ -78,9 +86,9 @@ Allowing you to then style it as you like:
 
 ### Why did that work?
 
-The `highlight` function takes a configuration object with many options, the most important of which is the "patterns" option. This should take the form of an object (or function, but we'll get to that) where each key is a class name and each value is, in its most basic form, a regular expression that matches the class name.
+The `highlight` function takes a configuration object with many options, the most important of which is the "patterns" option. This should take the form of an array of objects (or function, but we'll get to that). Each object contains a `name` property that will ultimately translate to the classes given to the matched text, and a `match` property which is, in its most basic form, a regular expression associated with those classes.
 
-Custom-syntax-highlighter works by testing each pattern against a string. If it doesn't find a match, it cuts the first character off the string and tries again. When it finds a match, it cuts off the whole match, wraps it in a span, and then continues until the string is completely used up. As such, **ALL OF YOUR PATTERNS SHOULD BEGIN WITH THE "^" CHARACTER TO INDICATE THAT ONLY THE BEGINNING OF THE STRING SHOULD BE TESTED**.
+Custom-syntax-highlighter works by testing each pattern object _in order_ against a string. If it doesn't find a match, it cuts the first character off the string and tries again. When it finds a match, it cuts off the whole match, wraps it in a span, and then continues until the string is completely used up. As such, **ALL OF YOUR PATTERNS SHOULD BEGIN WITH THE "^" CHARACTER TO INDICATE THAT ONLY THE BEGINNING OF THE STRING SHOULD BE TESTED**.
 
 If you don't follow this rule, the processing will be far less efficient and you will get unexpected results.
 
@@ -120,7 +128,7 @@ highlight({
 
 #### Using a function for the `patterns` options
 
-If you use a function for the "patterns" option, that function will be called once for each identified block and should return either nothing if you don't want to process it, or an object of patterns with which to do the processing. For example:
+If you use a function for the "patterns" option, that function will be called once for each identified block and should return either nothing if you don't want to process it, or an array of pattern objects with which to do the processing. For example:
 
 ```javascript
 highlight({

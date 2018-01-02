@@ -7,7 +7,7 @@
  * collects the match, wraps it in a span with a class name, and recurses. It
  * goes until the whole string has been collected.
  *
- * @param  {Object} patterns  The patterns to parse against
+ * @param  {Object} patterns  The array of pattern objects to parse against
  * @param  {String} incoming  The original text, being shortened as we recurse.
  * @param  {String} output    The new text with spans.
  *
@@ -34,14 +34,15 @@ function parse(patterns, incoming, output) {
    * Check each pattern against the string. If we find a match, assign it to the
    * match variable.
    */
-  Object.keys(patterns).some(function (key) {
-    var isRegex = patterns[key] instanceof RegExp;
-    var pattern = isRegex ? patterns[key] : patterns[key][0];
-    var prefix = isRegex ? null : patterns[key][1] || null;
-    var suffix = isRegex ? null : patterns[key][2] || null;
+  patterns.some(function (pattern) {
+    var name = pattern.name;
+    var isRegex = pattern.match instanceof RegExp;
+    var capture = isRegex ? pattern.match : pattern.match[0];
+    var prefix = isRegex ? null : pattern.match[1] || null;
+    var suffix = isRegex ? null : pattern.match[2] || null;
 
-    match = incoming.match(pattern);
-    matchType = match ? key : null;
+    match = incoming.match(capture);
+    matchType = match ? pattern.name : null;
     matchPrefix = prefix;
     matchSuffix = suffix;
     return !!match;
@@ -110,7 +111,7 @@ function clean(text) {
  * Highlights code blocks in a way you specify.
  *
  * @param  {Object} config    Allows the following keys:
- *                              patterns:    {...} (The regex patterns used to parse)
+ *                              patterns:    [...] (The regex patterns used to parse)
  *                              linenums:    true  (Turns on line numbers)
  *                              selector:    'pre' (Defaults to 'pre code')
  *                              preProcess:  fn    (Allows you to eff with the string after parsing)
