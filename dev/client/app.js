@@ -1,176 +1,182 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 'use strict';
 
-/**
- * Recursively parses a string of text in a way that loosely mimicks a Jison parser.
- * It looks at the beginning of the string, and attempts to find a match. If there
- * is no match, it collects a raw character and recurses. If it finds a match, it
- * collects the match, wraps it in a span with a class name, and recurses. It
- * goes until the whole string has been collected.
- *
- * @param  {Object} patterns  The array of pattern objects to parse against
- * @param  {String} incoming  The original text, being shortened as we recurse.
- * @param  {String} output    The new text with spans.
- *
- * @return {String} The output.
- */
+(function () {
 
-function parse(patterns, incoming, output) {
-
-  /*
-   * These variables will be used to help us figure out how to
-   * wrap text when we find a match.
+  /**
+   * Recursively parses a string of text in a way that loosely mimicks a Jison parser.
+   * It looks at the beginning of the string, and attempts to find a match. If there
+   * is no match, it collects a raw character and recurses. If it finds a match, it
+   * collects the match, wraps it in a span with a class name, and recurses. It
+   * goes until the whole string has been collected.
+   *
+   * @param  {Object} patterns  The array of pattern objects to parse against
+   * @param  {String} incoming  The original text, being shortened as we recurse.
+   * @param  {String} output    The new text with spans.
+   *
+   * @return {String} The output.
    */
-  var match = null;
-  var matchType = null;
-  var matchPrefix = null;
-  var matchSuffix = null;
-  output = output || '';
-
-  /*
-   * Return the output when the incoming string has nothing left in it.
-   */
-  if (!incoming.length) return output || '';
-
-  /*
-   * Check each pattern against the string. If we find a match, assign it to the
-   * match variable.
-   */
-  patterns.some(function (pattern) {
-    var name = pattern.name;
-    var isRegex = pattern.match instanceof RegExp;
-    var capture = isRegex ? pattern.match : pattern.match[0];
-    var prefix = isRegex ? null : pattern.match[1] || null;
-    var suffix = isRegex ? null : pattern.match[2] || null;
-
-    match = incoming.match(capture);
-    matchType = match ? pattern.name : null;
-    matchPrefix = prefix;
-    matchSuffix = suffix;
-    return !!match;
-  });
-
-  /*
-   * If there was no match, collect one character and recurse.
-   */
-  if (!match) {
-    return parse(patterns, incoming.slice(1), output + incoming[0]);
+  function parse(patterns, incoming, output) {
 
     /*
-     * If there was a match, wrap it in a span. If we have a prefix and/or
-     * suffix, drop those in too.
+     * These variables will be used to help us figure out how to
+     * wrap text when we find a match.
      */
-  } else {
-    var replacement = '<span class="' + matchType + '">' + match[1] + '</span>';
-    if (matchPrefix) replacement = matchPrefix + replacement;
-    if (matchSuffix) replacement = replacement + matchSuffix;
+    var match = null;
+    var matchType = null;
+    var matchPrefix = null;
+    var matchSuffix = null;
+    output = output || '';
 
     /*
-     * Collect the match and recurse
+     * Return the output when the incoming string has nothing left in it.
      */
-    return parse(patterns, incoming.slice(match[0].length), output + replacement);
-  }
-}
-
-/**
- * Custom-syntax-highlighter is nice and knows that you like to indent code
- * when you're writing. It doesn't expect you to dedent your `pre` and `code`
- * tags all the way to the left just so it won't appear weirdly indented in the
- * output.
- *
- * This function does some convenient whitespace parsing to help with things like that.
- *
- * @param  {String} text  The original, unparsed text.
- *
- * @return {String} The cleaned up text.
- */
-function clean(text) {
-
-  /*
-   * Cut out useless new line lines at the front and back.
-   * Check to see if there's some indentation and return if not.
-   */
-  var trimmed = text.replace(/^\n+|\n+\s+$/g, '');
-  var spaceToCut = trimmed.match(/^\s+/);
-  if (!spaceToCut) return trimmed;
-
-  /*
-   * Split the block into an array of lines. For each one, remove the
-   * matched indentation from the front.
-   */
-  var textArray = trimmed.split('\n');
-  var dedented = textArray.map(function (string, index) {
-    return !string || /^\s+$/.test(string) ? string : string.replace(spaceToCut[0], '');
-  }).join('\n');
-
-  /*
-   * Spit out the dedented text.
-   */
-  return '\n' + dedented;
-}
-
-/**
- * Highlights code blocks in a way you specify.
- *
- * @param  {Object} config    Allows the following keys:
- *                              patterns:    [...] (The regex patterns used to parse)
- *                              linenums:    true  (Turns on line numbers)
- *                              selector:    'pre' (Defaults to 'pre code')
- *                              preProcess:  fn    (Allows you to eff with the string after parsing)
- *                              postProcess: fn    (Allows you to eff with the string after parsing)
- *
- * @return {undefined}
- */
-function highlight(config) {
-  var selector = config.selector || 'pre code';
-  var postProcess = config.postProcess || function (str) {
-    return str;
-  };
-  var preProcess = config.preProcess || function (str) {
-    return str;
-  };
-
-  /*
-   * Find all `pre code` blocks and loop over them. For each block...
-   */
-  Array.prototype.slice.call(document.querySelectorAll(selector)).forEach(function (block) {
-    var patterns = (typeof config.patterns === 'function' ? config.patterns(block) : config.patterns) || {};
+    if (!incoming.length) return output || '';
 
     /*
-     * Get the inner text, clean the text, then parse the text with the patterns.
+     * Check each pattern against the string. If we find a match, assign it to the
+     * match variable.
      */
-    var innerText = block.innerText;
-    var cleanText = clean(innerText);
-    var parsed = postProcess(parse(patterns, preProcess(cleanText)));
+    patterns.some(function (pattern) {
+      var name = pattern.name;
+      var isRegex = pattern.match instanceof RegExp;
+      var capture = isRegex ? pattern.match : pattern.match[0];
+      var prefix = isRegex ? null : pattern.match[1] || null;
+      var suffix = isRegex ? null : pattern.match[2] || null;
+
+      match = incoming.match(capture);
+      matchType = match ? pattern.name : null;
+      matchPrefix = prefix;
+      matchSuffix = suffix;
+      return !!match;
+    });
 
     /*
-     * If the user wants line numbers, split the parsed text on new lines
-     * and loop over each line.
+     * If there was no match, collect one character and recurse.
      */
-    if (config.linenums) {
-      parsed = parsed.split('\n').map(function (string, index) {
+    if (!match) {
+      return parse(patterns, incoming.slice(1), output + incoming[0]);
 
-        /*
-         * Create a line number like 00, 01, 02, etc...
-         */
-        if (!index) return string;
-        var ind = index - 1 + '';
-        if (ind.length < 2) ind = '0' + ind;
+      /*
+       * If there was a match, wrap it in a span. If we have a prefix and/or
+       * suffix, drop those in too.
+       */
+    } else {
+      var replacement = '<span class="' + matchType + '">' + match[1] + '</span>';
+      if (matchPrefix) replacement = matchPrefix + replacement;
+      if (matchSuffix) replacement = replacement + matchSuffix;
 
-        /*
-         * Return a new span on the beginning og the line.
-         */
-        return '<span class="linenum">' + ind + '</span> ' + string;
-      }).join('\n');
+      /*
+       * Collect the match and recurse
+       */
+      return parse(patterns, incoming.slice(match[0].length), output + replacement);
     }
-    block.innerHTML = parsed;
-  });
-}
+  }
 
-/*
- * Export the hightlight function
- */
-module.exports = exports = highlight;
+  /**
+   * Custom-syntax-highlighter is nice and knows that you like to indent code
+   * when you're writing. It doesn't expect you to dedent your `pre` and `code`
+   * tags all the way to the left just so it won't appear weirdly indented in the
+   * output.
+   *
+   * This function does some convenient whitespace parsing to help with things like that.
+   *
+   * @param  {String} text  The original, unparsed text.
+   *
+   * @return {String} The cleaned up text.
+   */
+  function clean(text) {
+
+    /*
+     * Cut out useless new line lines at the front and back.
+     * Check to see if there's some indentation and return if not.
+     */
+    var trimmed = text.replace(/^\n+|\n+\s+$/g, '');
+    var spaceToCut = trimmed.match(/^\s+/);
+    if (!spaceToCut) return trimmed;
+
+    /*
+     * Split the block into an array of lines. For each one, remove the
+     * matched indentation from the front.
+     */
+    var textArray = trimmed.split('\n');
+    var dedented = textArray.map(function (string, index) {
+      return !string || /^\s+$/.test(string) ? string : string.replace(spaceToCut[0], '');
+    }).join('\n');
+
+    /*
+     * Spit out the dedented text.
+     */
+    return '\n' + dedented;
+  }
+
+  /**
+   * Highlights code blocks in a way you specify.
+   *
+   * @param  {Object} config    Allows the following keys:
+   *                              patterns:    [...] (The regex patterns used to parse)
+   *                              linenums:    true  (Turns on line numbers)
+   *                              selector:    'pre' (Defaults to 'pre code')
+   *                              preProcess:  fn    (Allows you to eff with the string after parsing)
+   *                              postProcess: fn    (Allows you to eff with the string after parsing)
+   *
+   * @return {undefined}
+   */
+  function highlight(config) {
+    var selector = config.selector || 'pre code';
+    var postProcess = config.postProcess || function (str) {
+      return str;
+    };
+    var preProcess = config.preProcess || function (str) {
+      return str;
+    };
+
+    /*
+     * Find all `pre code` blocks and loop over them. For each block...
+     */
+    Array.prototype.slice.call(document.querySelectorAll(selector)).forEach(function (block) {
+      var patterns = (typeof config.patterns === 'function' ? config.patterns(block) : config.patterns) || {};
+
+      /*
+       * Get the inner text, clean the text, then parse the text with the patterns.
+       */
+      var innerText = block.innerText;
+      var cleanText = clean(innerText);
+      var parsed = postProcess(parse(patterns, preProcess(cleanText)));
+
+      /*
+       * If the user wants line numbers, split the parsed text on new lines
+       * and loop over each line.
+       */
+      if (config.linenums) {
+        parsed = parsed.split('\n').map(function (string, index) {
+
+          /*
+           * Create a line number like 00, 01, 02, etc...
+           */
+          if (!index) return string;
+          var ind = index - 1 + '';
+          if (ind.length < 2) ind = '0' + ind;
+
+          /*
+           * Return a new span on the beginning og the line.
+           */
+          return '<span class="linenum">' + ind + '</span> ' + string;
+        }).join('\n');
+      }
+      block.innerHTML = parsed;
+    });
+  }
+
+  /*
+   * Export the hightlight function
+   */
+  if (typeof module !== 'undefined') {
+    module.exports = exports = highlight;
+  } else if (typeof window !== 'undefined') {
+    window.csHighlight = window.csHighlight || highlight;
+  }
+})();
 
 },{}],2:[function(require,module,exports){
 'use strict';
@@ -230,7 +236,7 @@ var _patterns = [{
 
 window.addEventListener('load', function () {
 
-  (0, _index2.default)({
+  window.csHighlight({
     //patterns: patterns,
     patterns: function patterns(block) {
       if (/javascript/.test(block.className)) {

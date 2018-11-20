@@ -1,3 +1,4 @@
+(function () {
 
 /**
  * Recursively parses a string of text in a way that loosely mimicks a Jison parser.
@@ -164,4 +165,10 @@ function highlight(config) {
 /*
  * Export the hightlight function
  */
-module.exports = exports = highlight;
+if (typeof module !== 'undefined') {
+  module.exports = exports = highlight;
+} else if (typeof window !== 'undefined') {
+  window.csHighlight = window.csHighlight || highlight;
+}
+
+}());

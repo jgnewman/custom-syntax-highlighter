@@ -36,6 +36,15 @@ Then you need to import it:
 import highlight from 'custom-syntax-highlighter';
 ```
 
+Or you can also do it the old fashioned way:
+
+```html
+<script src="https://unpkg.com/custom-syntax-highlighter@latest/bin/index.js"></script>
+<script>
+var highlight = window.csHighlight;
+</script>
+```
+
 Then you can go to town.
 
 The idea is that you will define a collection of patterns to match against. Each one is associated with a class name. Custom-syntax-highlighter will loop over your code blocks and wrap the matches it finds with spans that have the class name. This way, you are free to control what gets wrapped and how it gets styled.

@@ -65,7 +65,7 @@ const patterns = [
 
 window.addEventListener('load', () => {
 
-  highlight({
+  window.csHighlight({
     //patterns: patterns,
     patterns: block => {
       if (/javascript/.test(block.className)) {

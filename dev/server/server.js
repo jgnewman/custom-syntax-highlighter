@@ -15,6 +15,10 @@ app.use('/styles.css', express.static(
   path.resolve(__dirname, '../', 'client/styles.css')
 ));
 
+app.use('/csh.js', express.static(
+  path.resolve(__dirname, '../', '../', 'bin/index.js')
+));
+
 app.get(['/', '/*'], (req, res) => {
   res.sendFile(path.resolve(__dirname, '../', 'client/index.html'));
 });
